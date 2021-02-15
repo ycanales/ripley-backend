@@ -5,6 +5,7 @@ import * as bodyparser from 'body-parser';
 import * as winston from 'winston';
 import * as expressWinston from 'express-winston';
 import cors from 'cors';
+import {Sequelize} from 'sequelize';
 import {CommonRoutesConfig} from "./common/common.routes.config";
 import {ProductsRoutes} from "./products/products.routes.config";
 import debug from 'debug';
@@ -14,6 +15,16 @@ const server: http.Server = http.createServer(app);
 const port: Number = 3000;
 const routes: Array<CommonRoutesConfig> = [];
 const debugLog: debug.IDebugger = debug('app')
+
+// Iniciar conexión con base de datos
+const sequelize = new Sequelize('sqlite::memory:');
+sequelize.authenticate()
+    .then(() => debugLog('Conexion exitosa'))
+    .catch((error) => debugLog('Error al conectar a base de datos', error));
+
+// const Product = sequelize.define('Product', {
+//
+// })
 
 // Parsear requests como JSON
 app.use(bodyparser.json());
