@@ -1,7 +1,7 @@
 import debug from 'debug';
-import sequelize from './common/sequelize';
+import sequelize, {dataSeed} from './common/sequelize';
 import app from './common/express';
-const PORT = 3000;
+const PORT = 3001;
 
 const debugLog: debug.IDebugger = debug('app')
 
@@ -19,9 +19,7 @@ async function assertDatabaseConnectionOk() {
 
 async function init() {
     await assertDatabaseConnectionOk();
-
-    // Creamos las tablas desde cero. En producción debemos usar migraciones.
-    sequelize.sync({ force: true}).then(() => debugLog('Sequelize sync OK'));
+    await dataSeed();
 
     app.listen(PORT, () => {
         debugLog(`Server corriendo en http://localhost:${PORT}`);
