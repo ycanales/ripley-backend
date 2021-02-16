@@ -1,6 +1,6 @@
 import productsDao from './products.dao';
 import {CRUD} from "../common/crud.interface";
-import {ProductDto} from './products.model.dto';
+import {ProductDto} from './products.model';
 
 class ProductsService implements CRUD {
     private static instance: ProductsService;
@@ -13,32 +13,28 @@ class ProductsService implements CRUD {
     }
 
     async create(resource: ProductDto) {
-        return await productsDao.addProduct(resource);
+        return await productsDao.add(resource);
     }
 
     async deleteById(resourceId: string) {
-        return await productsDao.removeProductById(resourceId);
+        return await productsDao.removeById(resourceId);
     };
 
     // limit and page are ignored until we upgrade our DAO
     async list(limit: number, page: number) {
-        return await productsDao.getProducts();
+        return await productsDao.all();
     };
 
     async patchById(resource: ProductDto) {
-        return await productsDao.patchProductById(resource)
+        return await productsDao.patchById(resource)
     };
 
     async readById(resourceId: string) {
-        return await productsDao.getProductById(resourceId);
-    };
-
-    async updateById(resource: ProductDto) {
-        return await productsDao.putProductById(resource);
+        return await productsDao.getById(resourceId);
     };
 
     async getProductById(email: string) {
-        return productsDao.getProductById(email);
+        return productsDao.getById(email);
     }
 }
 

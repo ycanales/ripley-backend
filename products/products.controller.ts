@@ -36,12 +36,6 @@ class ProductsController {
         res.status(204).send(``);
     }
 
-    async put(req: express.Request, res: express.Response) {
-        req.body.password = await argon2.hash(req.body.password);
-        log(await productsService.updateById({id: req.params.productId, ...req.body}));
-        res.status(204).send(``);
-    }
-
     async removeProduct(req: express.Request, res: express.Response) {
         log(await productsService.deleteById(req.params.productId));
         res.status(204).send(``);

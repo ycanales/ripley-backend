@@ -17,11 +17,6 @@ export class ProductsRoutes extends CommonRoutesConfig {
             .get(ProductsController.getProductById)
             .delete(ProductsController.removeProduct);
 
-        this.app.put('/products/:productId', [
-            ProductsMiddleware.validateRequiredProductFields,
-            ProductsController.put
-        ])
-
         this.app.patch('/products/:productId', [
             ProductsMiddleware.validatePatchId,
             ProductsController.patch

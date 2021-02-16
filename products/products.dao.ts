@@ -1,12 +1,11 @@
-import {ProductDto} from "./products.model.dto";
-import shortid from "shortid";
+import s from '../common/sequelize';
 import debug from "debug";
+import {ProductDto} from "./products.model";
 const log: debug.IDebugger = debug('app:products-dao');
 
 // Singleton para tener una sola instancia del DAO.
 class ProductsDao {
     private static instance: ProductsDao;
-    products: Array<ProductDto> = [];
 
     constructor() {
         log('Creado ProductsDao');
@@ -19,43 +18,35 @@ class ProductsDao {
         return ProductsDao.instance;
     }
 
-    async addProduct(product: ProductDto) {
-        product.id = shortid.generate();
-        this.products.push(product);
-        return product.id;
+    async add(product: ProductDto) {
+        const p: any = await s.models.product.create(product);
+        return p.id;
     }
 
-    async getProducts() {
-        return this.products;
+    async all() {
+        const products = await s.models.product.findAll();
+        return products;
     }
 
-    async getProductById(productId: string) {
-        return this.products.find((product: { id: string; }) => product.id === productId)
+    async getById(productId: string) {
+        return await s.models.product.findByPk(productId);
     }
 
-    async putProductById(product: ProductDto) {
-        const objIndex = this.products.findIndex((obj: { id: string; }) => obj.id === product.id);
-        this.products.splice(objIndex, 1, product);
-        return `${product.id} updated via PUT`;
-    }
-
-    async patchProductById(product: ProductDto) {
-        const objIndex = this.products.findIndex((obj: { id: string; }) => obj.id === product.id);
-        let currentProduct = this.products[objIndex];
-        const allowedPatchFields = ['password', 'firstName', 'lastName', 'permissionLevel'];
-        for (let field of allowedPatchFields) {
-            if (field in product) {
-                // @ts-ignore
-                currentProduct[field] = product[field];
+    async patchById(product: ProductDto) {
+        await s.models.product.update(product, {
+            where: {
+                id: product.id
             }
-        }
-        this.products.splice(objIndex, 1, currentProduct);
+        });
         return `${product.id} patched`
     }
 
-    async removeProductById(productId: string) {
-        const objIndex = this.products.findIndex((obj: { id: string; }) => obj.id === productId);
-        this.products.splice(objIndex, 1);
+    async removeById(productId: string) {
+        await s.models.product.destroy({
+            where: {
+                id: productId
+            }
+        });
         return `${productId} removed`;
     }
 }
