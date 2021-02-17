@@ -107,7 +107,7 @@ class ProductsDao {
     }
 
     // Aplicamos descuento del 20%.
-    if (search && isPalindrome(search)) {
+    if (search && search.length > 1 && isPalindrome(search)) {
       products.forEach((product) => {
         // @ts-ignore
         product.precioDescuento = Math.floor(product.precio * 0.8);
