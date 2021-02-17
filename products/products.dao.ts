@@ -15,7 +15,7 @@ const ENDPOINT: string = "http://s3.sirv.com";
 
 function getUploadParams(file: any) {
   const split = file.originalname.split(".");
-  const extension = split[split.length - 1] ?? "";
+  const extension = split[split.length - 1] ? split[split.length - 1] : "";
   return {
     Bucket: BUCKET,
     Key: `${nanoid()}.${extension}`,
