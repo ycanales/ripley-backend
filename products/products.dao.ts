@@ -5,6 +5,7 @@ import { Op } from "sequelize";
 
 import secrets from "../common/secrets";
 import s from "../common/sequelize";
+import isPalindrome from "../common/isPalindrome";
 import debug from "debug";
 import { ProductDto } from "./products.model";
 
@@ -103,6 +104,14 @@ class ProductsDao {
       });
     } else {
       products = await s.models.product.findAll();
+    }
+
+    // Aplicamos descuento del 20%.
+    if (search && isPalindrome(search)) {
+      products.forEach((product) => {
+        // @ts-ignore
+        product.precioDescuento = Math.floor(product.precio * 0.8);
+      });
     }
 
     return products;
