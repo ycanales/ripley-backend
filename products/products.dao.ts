@@ -1,12 +1,25 @@
 import AWS from "aws-sdk";
 import nanoid from "nanoid";
 import http from "http";
+import { Op } from "sequelize";
 
 import secrets from "../common/secrets";
 import s from "../common/sequelize";
 import debug from "debug";
 import { ProductDto } from "./products.model";
+
 const log: debug.IDebugger = debug("app:products-dao");
+const BUCKET: string = "dratiora";
+
+function getUploadParams(file: any) {
+  const split = file.originalname.split(".");
+  const extension = split[split.length - 1] ?? "";
+  return {
+    Bucket: BUCKET,
+    Key: `${nanoid()}.${extension}`,
+    Body: file.buffer,
+  };
+}
 
 // Singleton para tener una sola instancia del DAO.
 class ProductsDao {
@@ -15,6 +28,17 @@ class ProductsDao {
 
   constructor() {
     log("Creado ProductsDao");
+  }
+
+  static async upload(file: any, product: ProductDto) {
+    if (file && file.buffer) {
+      const stored = await ProductsDao.s3
+        .upload(getUploadParams(file))
+        .promise();
+      // Corregimos URL, esto es especifico del CDN de imágenes.
+      product.imagen = stored.Location.replace(".s3", "");
+      log("Uploaded to", product.imagen);
+    }
   }
 
   static getInstance(): ProductsDao {
@@ -35,23 +59,8 @@ class ProductsDao {
   }
 
   async add(product: ProductDto, file: any) {
-    log("------add ", product);
     try {
-      log("multer file", file);
-
-      if (file && file.buffer) {
-        const split = file.originalname.split(".");
-        const extension = split[split.length - 1] ?? "";
-        const stored = await ProductsDao.s3
-          .upload({
-            Bucket: "dratiora",
-            Key: `${nanoid()}.${extension}`,
-            Body: file.buffer,
-          })
-          .promise();
-        product.imagen = stored.Location.replace(".s3", "");
-        log("Uploaded to", product.imagen);
-      }
+      await ProductsDao.upload(file, product);
       const p: any = await s.models.product.create(product);
       return p.id;
     } catch (err) {
@@ -59,8 +68,43 @@ class ProductsDao {
     }
   }
 
-  async all() {
-    const products = await s.models.product.findAll();
+  async all(search: string) {
+    let products = [];
+    // Busqueda por ID exacto.
+    if (search && !isNaN(parseInt(search, 10))) {
+      log("Busqueda por ID", search);
+      const product = await s.models.product.findByPk(+search);
+      if (product) {
+        products.push(product);
+      }
+    } else if (search) {
+      // Busqueda por marca y descripcion
+      log("Busqueda:", search);
+      products = await s.models.product.findAll({
+        where: {
+          [Op.or]: [
+            {
+              nombre: {
+                [Op.substring]: search,
+              },
+            },
+            {
+              marca: {
+                [Op.substring]: search,
+              },
+            },
+            {
+              descripcion: {
+                [Op.substring]: search,
+              },
+            },
+          ],
+        },
+      });
+    } else {
+      products = await s.models.product.findAll();
+    }
+
     return products;
   }
 
@@ -69,10 +113,15 @@ class ProductsDao {
   }
 
   async patchById(product: ProductDto, file: any, id: number) {
-    log("- - - - -patch this", product);
-    await s.models.product.update(product, {
-      where: { id },
-    });
+    try {
+      await ProductsDao.upload(file, product);
+      await s.models.product.update(product, {
+        where: { id },
+      });
+    } catch (err) {
+      log(err);
+    }
+
     return `${id} patched`;
   }
 

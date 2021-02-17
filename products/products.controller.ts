@@ -17,7 +17,8 @@ class ProductsController {
   }
 
   async listProducts(req: express.Request, res: express.Response) {
-    const products = await productsService.list(100, 0);
+    const search: string = req.query.buscar as string;
+    const products = await productsService.list(search);
     res.status(200).send(products);
   }
 

@@ -21,8 +21,8 @@ class ProductsService implements CRUD {
   }
 
   // limit and page are ignored until we upgrade our DAO
-  async list(limit: number, page: number) {
-    return await productsDao.all();
+  async list(search: string) {
+    return await productsDao.all(search);
   }
 
   async patchById(resource: ProductDto, file: any, id: number) {
