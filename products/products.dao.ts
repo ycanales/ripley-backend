@@ -11,6 +11,7 @@ import { ProductDto } from "./products.model";
 
 const log: debug.IDebugger = debug("app:products-dao");
 const BUCKET: string = "dratiora";
+const ENDPOINT: string = "http://s3.sirv.com";
 
 function getUploadParams(file: any) {
   const split = file.originalname.split(".");
@@ -38,7 +39,6 @@ class ProductsDao {
         .promise();
       // Corregimos URL, esto es especifico del CDN de imágenes.
       product.imagen = stored.Location.replace(".s3", "");
-      log("Uploaded to", product.imagen);
     }
   }
 
@@ -49,7 +49,7 @@ class ProductsDao {
       ProductsDao.s3 = new AWS.S3({
         accessKeyId: secrets.accessKeyId,
         secretAccessKey: secrets.secretAccessKey,
-        endpoint: "http://s3.sirv.com",
+        endpoint: ENDPOINT,
         httpOptions: {
           // @ts-ignore
           agent: new http.Agent({ rejectUnauthorized: false }),
@@ -73,14 +73,12 @@ class ProductsDao {
     let products = [];
     // Busqueda por ID exacto.
     if (search && !isNaN(parseInt(search, 10))) {
-      log("Busqueda por ID", search);
       const product = await s.models.product.findByPk(+search);
       if (product) {
         products.push(product);
       }
     } else if (search) {
       // Busqueda por marca y descripcion
-      log("Busqueda:", search);
       products = await s.models.product.findAll({
         where: {
           [Op.or]: [
