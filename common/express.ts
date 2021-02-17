@@ -1,14 +1,14 @@
 import express from "express";
 import http from "http";
-import {CommonRoutesConfig} from "./common.routes.config";
+import { CommonRoutesConfig } from "./common.routes.config";
 import debug from "debug";
 import * as bodyparser from "body-parser";
 import cors from "cors";
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
-import {ProductsRoutes} from "../products/products.routes";
+import { ProductsRoutes } from "../products/products.routes";
 
-const debugLog: debug.IDebugger = debug('app')
+const debugLog: debug.IDebugger = debug("app");
 
 const app: express.Application = express();
 const server: http.Server = http.createServer(app);
@@ -19,29 +19,45 @@ const routes: Array<CommonRoutesConfig> = [];
 app.use(bodyparser.json());
 
 // Permitir requests cross-origin
-app.use(cors());
+if (process.env.NODE_ENV !== "production") {
+  app.use(cors());
+} else {
+  app.use(
+    cors({
+      origin: "http://ripley-front.ycanales.com",
+      allowedHeaders: [
+        "Accept-Version",
+        "Authorization",
+        "Credentials",
+        "Content-Type",
+      ],
+    })
+  );
+}
 
 // Logging
-app.use(expressWinston.logger({
-    transports: [
-        new winston.transports.Console()
-    ],
+app.use(
+  expressWinston.logger({
+    transports: [new winston.transports.Console()],
     format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.json()
-    )
-}));
+      winston.format.colorize(),
+      winston.format.json()
+    ),
+  })
+);
 
 // Agregar routes de modulo products
 routes.push(new ProductsRoutes(app));
 
 // Configurar winston para logging de errores
-app.use(expressWinston.errorLogger({
-    transports: [ new winston.transports.Console()],
+app.use(
+  expressWinston.errorLogger({
+    transports: [new winston.transports.Console()],
     format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.json()
-    )
-}));
+      winston.format.colorize(),
+      winston.format.json()
+    ),
+  })
+);
 
 export default app;
