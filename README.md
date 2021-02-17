@@ -10,3 +10,12 @@ La base de datos utilizada es Sqlite la cual se accede mediante el ORM Sequelize
 3. Correr de manera local con `npm run debug`
 
 Para correr en producción he optado por subirlo a una VPS, usar Nginx como proxy reverso y correr la aplicación NodeJS con [PM2](https://pm2.keymetrics.io/).
+
+## Librerías
+
+Me he apoyado en diversas librerías para el desarrollo de la solución:
+
+- `Express`: para estructurar la aplicación web.
+- `nanoid`: creación de identificadores únicos, usados en este caso para los nombres de imágenes subidas.
+- `aws-sdk`: para subir las imágenes a S3.
+- `sequelize`: ORM para bases de datos SQL.
